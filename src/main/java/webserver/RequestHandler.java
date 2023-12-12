@@ -9,7 +9,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.file.Files;
-import java.util.Arrays;
 import java.util.Map;
 
 import model.User;
@@ -17,8 +16,8 @@ import model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import util.HttpHeaderUtils;
 import util.HttpRequestUtils;
+import util.IOUtils;
 
 public class RequestHandler extends Thread {
 	private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
@@ -47,6 +46,7 @@ public class RequestHandler extends Thread {
 			if (line == null) {
 				return;
 			}
+			int contentLength = 0;
 			HttpRequest httpRequest = new HttpRequest(line);
 
 			String url = httpRequest.getSimpleUrl();
@@ -56,9 +56,16 @@ public class RequestHandler extends Thread {
 				responseBody(dos, body);
 			}
 
-			String queryString = httpRequest.getQueryString();
+			while(!line.equals("")) {
+				line = br.readLine();
+				if (line.startsWith("Content-Length")) {
+					contentLength = Integer.parseInt(line.split(":")[1].trim());
+				}
+			}
+
+			String body = IOUtils.readData(br, contentLength);
 			if (url.startsWith("/user/create")) {
-				Map<String, String> queryMap = HttpRequestUtils.parseQueryString(queryString);
+				Map<String, String> queryMap = HttpRequestUtils.parseQueryString(body);
 				String name = queryMap.get("name");
 				String password = queryMap.get("password");
 				String userId = queryMap.get("userId");
