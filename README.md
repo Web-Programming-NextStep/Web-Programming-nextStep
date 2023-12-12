@@ -24,7 +24,16 @@
 * 
 
 ### 요구사항 4 - redirect 방식으로 이동
-* 
+처음에는 다음과 같은 방식으로 redirect를 구현했다.   
+`dos.writeBytes("Location: localhost:8080/index.html");`
+
+하지만 정상적으로 동작하지 않았고, 다음과 같이 처리를 해준 글을 볼 수 있었다.  
+`dos.writeBytes("Location: /index.html");`  
+별 차이가 없는데 성공하는 이유를 몰라서, 다음과 같이 테스트를 수행해봤다.
+
+`dos.writeBytes("Location: http://localhost:8080/index.html");`  
+테스트 결과 정상적으로 수행되는 것을 볼 수 있었다. 1번 방식에서 protocol을 명시해주지 않았기 때문에 생긴 문제였다.  
+2번 째 방식은 이미 클라이언트에서 요청한 Host를 알고 있기 때문에 그에 맞게 매핑해주어 정상 호출 된 것으로 보인다.
 
 ### 요구사항 5 - cookie
 * 
