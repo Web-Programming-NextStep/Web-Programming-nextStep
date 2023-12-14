@@ -54,6 +54,7 @@ public class RequestHandler extends Thread {
 			String url = httpRequest.getSimpleUrl();
 			if (httpRequest.isHtml()) {
 				responseResource(url, dos);
+				return;
 			}
 
 			while (!line.equals("")) {
@@ -79,13 +80,15 @@ public class RequestHandler extends Thread {
 				log.info("user : {}", user);
 				response302Header(dos, 0);
 			} else if (url.startsWith("/user/login")) {
-				String password = queryMap.get("password");
 				String userId = queryMap.get("userId");
+				String password = queryMap.get("password");
+				log.info("userId : {}, password : {}", userId, password);
 				User user = DataBase.findUserById(userId);
+				log.info("user : {}", user);
 				if (user.isSamePassword(password)) {
-					response200LoginSuccessHeader(dos);
+					response302LoginSuccessHeader(dos);
 				} else {
-					responseResource("/user/login_failed.html", dos);
+					response302LoginFailHeader(dos);
 				}
 			}
 
@@ -121,11 +124,24 @@ public class RequestHandler extends Thread {
 		}
 	}
 
-	private void response200LoginSuccessHeader(DataOutputStream dos) {
+	private void response302LoginSuccessHeader(DataOutputStream dos) {
 		try {
-			dos.writeBytes("HTTP/1.1 200 OK \r\n");
+			dos.writeBytes("HTTP/1.1 302 FOUND \r\n");
 			dos.writeBytes("Content-Type: text/html \r\n");
+			dos.writeBytes("Location: /index.html \r\n");
 			dos.writeBytes("Set-Cookie: logined=true \r\n");
+			dos.writeBytes("\r\n");
+		} catch (IOException e) {
+			log.error(e.getMessage());
+		}
+	}
+
+	private void response302LoginFailHeader(DataOutputStream dos) {
+		try {
+			dos.writeBytes("HTTP/1.1 302 FOUND \r\n");
+			dos.writeBytes("Content-Type: text/html \r\n");
+			dos.writeBytes("Location: /user/login_failed.html \r\n");
+			dos.writeBytes("Set-Cookie: logined=false \r\n");
 			dos.writeBytes("\r\n");
 		} catch (IOException e) {
 			log.error(e.getMessage());
