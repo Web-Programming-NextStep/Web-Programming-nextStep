@@ -1,10 +1,13 @@
 package webserver;
 
+import util.Cookie;
+
 public class HttpRequest {
 
 	private HttpMethod httpMethod;
 	private String simpleUrl;
 	private String queryString;
+	private Cookie cookie;
 	private boolean isHtml;
 
 	public HttpMethod getHttpMethod() {
@@ -28,6 +31,14 @@ public class HttpRequest {
 		this.simpleUrl = parseHttpUrl(httpRequest);
 		this.queryString = parseQueryString(httpRequest);
 		this.isHtml = parseHtml(simpleUrl);
+	}
+
+	public void setCookie(Cookie cookie) {
+		this.cookie = cookie;
+	}
+
+	public Cookie getCookie() {
+		return cookie;
 	}
 
 	private boolean parseHtml(String url) {

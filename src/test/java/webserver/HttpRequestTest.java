@@ -5,9 +5,11 @@ import static org.assertj.core.api.Assertions.*;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import util.Cookie;
 
 class HttpRequestTest {
 
@@ -24,7 +26,22 @@ class HttpRequestTest {
 		assertThat(httpRequest.getSimpleUrl()).isEqualTo(simpleUrl);
 		assertThat(httpRequest.getQueryString()).isEqualTo(queryString);
 		assertThat(httpRequest.isHtml()).isEqualTo(isHtml);
+	}
 
+	@DisplayName("request 요청에 cookie를 넣을 수 있다.")
+	@Test
+	void setCookie() {
+	    // given
+		String url = "GET /index.html HTTP/1.1";
+		HttpRequest httpRequest = new HttpRequest(url);
+
+		Cookie cookie = new Cookie("Cookie: logined=true; test=ok");
+
+	    // when
+		httpRequest.setCookie(cookie);
+
+	    // then
+		assertThat(httpRequest.getCookie()).isEqualTo(cookie);
 	}
 
 	static Stream<Arguments> createHttpRequest() {
