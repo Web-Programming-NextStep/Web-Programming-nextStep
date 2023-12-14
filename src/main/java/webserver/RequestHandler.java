@@ -16,6 +16,7 @@ import model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import util.Cookie;
 import util.HttpRequestUtils;
 import util.IOUtils;
 
@@ -58,6 +59,9 @@ public class RequestHandler extends Thread {
 
             while (!line.equals("")) {
                 line = br.readLine();
+                if (line.startsWith("Cookie")) {
+                    Cookie cookie = new Cookie(line);
+                }
                 if (line.startsWith("Content-Length")) {
                     contentLength = Integer.parseInt(line.split(":")[1].trim());
                 }
@@ -96,6 +100,17 @@ public class RequestHandler extends Thread {
         try {
             dos.writeBytes("HTTP/1.1 302 Found \r\n");
             dos.writeBytes("Location: /index.html");
+            dos.writeBytes("\r\n");
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
+    }
+
+    private void response302LoginSuccessHeader(DataOutputStream dos) {
+        try {
+            dos.writeBytes("HTTP/1.1 302 Found \r\n");
+            dos.writeBytes("Location: /index.html");
+            dos.writeBytes("Set-Cookie: logined=true");
             dos.writeBytes("\r\n");
         } catch (IOException e) {
             log.error(e.getMessage());
