@@ -8,7 +8,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
+
 import util.Cookie;
 
 class HttpRequestTest {
@@ -42,6 +45,20 @@ class HttpRequestTest {
 
 	    // then
 		assertThat(httpRequest.getCookie()).isEqualTo(cookie);
+	}
+
+	@DisplayName("요청 값에 대해서 css파일을 확인할 수 있다.")
+	@CsvSource(value = {"GET /index.html:False", "GET /index.css:True"}, delimiter = ':')
+	@ParameterizedTest
+	void cssParsing(String url, Boolean expected) {
+	    // given
+		HttpRequest httpRequest = new HttpRequest(url);
+
+	    // when
+		boolean actual = httpRequest.isCss();
+
+		// then
+		assertThat(actual).isEqualTo(expected);
 	}
 
 	static Stream<Arguments> createHttpRequest() {
