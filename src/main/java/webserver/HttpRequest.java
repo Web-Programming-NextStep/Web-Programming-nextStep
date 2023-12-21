@@ -1,6 +1,19 @@
 package webserver;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import com.google.common.base.Strings;
+import com.google.common.collect.Maps;
+
 import util.Cookie;
+import util.HttpRequestUtils;
 
 public class HttpRequest {
 
@@ -8,6 +21,27 @@ public class HttpRequest {
 	private String simpleUrl;
 	private String queryString;
 	private Cookie cookie;
+	private Map<String, String> queryParameter = new HashMap<>();
+
+	public HttpRequest(InputStream in) throws IOException {
+		BufferedReader br = new BufferedReader(new InputStreamReader(in));
+		String line = br.readLine();
+		if (line == null) {
+			return;
+		}
+		parseHttpMethod(line);
+		parseHttpUrl(line);
+		parseQueryString(line);
+		while (!line.isEmpty()) {
+
+		}
+	}
+
+	public HttpRequest(String httpRequest) {
+		this.httpMethod = parseHttpMethod(httpRequest);
+		this.simpleUrl = parseHttpUrl(httpRequest);
+		parseQueryString(httpRequest);
+	}
 
 	public HttpMethod getHttpMethod() {
 		return httpMethod;
@@ -29,12 +63,6 @@ public class HttpRequest {
 		return simpleUrl.contains(".css");
 	}
 
-	public HttpRequest(String httpRequest) {
-		this.httpMethod = parseHttpMethod(httpRequest);
-		this.simpleUrl = parseHttpUrl(httpRequest);
-		this.queryString = parseQueryString(httpRequest);
-	}
-
 	public void setCookie(Cookie cookie) {
 		this.cookie = cookie;
 	}
@@ -43,16 +71,19 @@ public class HttpRequest {
 		return cookie;
 	}
 
-	private String parseQueryString(String httpRequest) {
+	private void parseQueryString(String httpRequest) {
 		String url = httpRequest.split(" ")[1];
 
 		if (url.contains("?")) {
-			int queryStartIndex = url.indexOf('?');
-
-			return url.substring(queryStartIndex + 1);
+			int startIndex = url.indexOf('?') + 1;
+			String queryString = url.substring(startIndex);
+			String[] tokens = queryString.split("&");
+			Arrays.stream(tokens)
+				.forEach(token -> {
+					String[] keyValue = token.split("=");
+					queryParameter.put(keyValue[0], keyValue[1]);
+				});
 		}
-
-		return "";
 	}
 
 	private String parseHttpUrl(String httpRequest) {

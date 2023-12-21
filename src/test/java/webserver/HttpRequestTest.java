@@ -2,6 +2,10 @@ package webserver;
 
 import static org.assertj.core.api.Assertions.*;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.DisplayName;
@@ -10,11 +14,26 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.ValueSource;
 
 import util.Cookie;
 
 class HttpRequestTest {
+	private final String TEST_DIRECTORY = "./src/test/resources/";
+
+	@DisplayName("")
+	@Test
+	void request_GET() throws FileNotFoundException {
+		// given
+		InputStream in = new FileInputStream(new File(TEST_DIRECTORY + "Http_GET.txt"));
+		HttpRequest httpRequest = new HttpRequest(in);
+
+		// then
+		assertThat(httpRequest.getHttpMethod()).isEqualTo(HttpMethod.GET);
+		assertThat(httpRequest.getPath()).isEqualTo("/user/create");
+		assertThat(httpRequest.getHeader("Connection")).isEqualTo("keep-alive");
+		assertThat(httpRequest.getParameter("userId")).isEqualTo("javajigi");
+
+	}
 
 	@DisplayName("요청으로 들어온 Http요청으로 HttpRequest 객체를 만들 수 있다.")
 	@MethodSource("createHttpRequest")

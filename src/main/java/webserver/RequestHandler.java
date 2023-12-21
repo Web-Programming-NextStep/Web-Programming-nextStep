@@ -66,7 +66,7 @@ public class RequestHandler extends Thread {
 			}
 
 			responseResource(url, dos, httpRequest);
-			if (httpRequest.isHtml() || httpRequest.isCss()) {
+			 if (httpRequest.isHtml() || httpRequest.isCss()) {
 				return;
 			}
 
