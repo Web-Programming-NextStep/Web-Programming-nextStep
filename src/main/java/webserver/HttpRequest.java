@@ -8,7 +8,6 @@ public class HttpRequest {
 	private String simpleUrl;
 	private String queryString;
 	private Cookie cookie;
-	private boolean isHtml;
 
 	public HttpMethod getHttpMethod() {
 		return httpMethod;
@@ -23,14 +22,17 @@ public class HttpRequest {
 	}
 
 	public boolean isHtml() {
-		return isHtml;
+		return simpleUrl.contains(".html");
+	}
+
+	public boolean isCss() {
+		return simpleUrl.contains(".css");
 	}
 
 	public HttpRequest(String httpRequest) {
 		this.httpMethod = parseHttpMethod(httpRequest);
 		this.simpleUrl = parseHttpUrl(httpRequest);
 		this.queryString = parseQueryString(httpRequest);
-		this.isHtml = parseHtml(simpleUrl);
 	}
 
 	public void setCookie(Cookie cookie) {
@@ -39,10 +41,6 @@ public class HttpRequest {
 
 	public Cookie getCookie() {
 		return cookie;
-	}
-
-	private boolean parseHtml(String url) {
-		return url.contains(".html");
 	}
 
 	private String parseQueryString(String httpRequest) {
