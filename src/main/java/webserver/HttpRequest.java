@@ -7,21 +7,16 @@ import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
-
-import com.google.common.base.Strings;
-import com.google.common.collect.Maps;
 
 import util.Cookie;
-import util.HttpRequestUtils;
 
 public class HttpRequest {
 
 	private HttpMethod httpMethod;
-	private String simpleUrl;
-	private String queryString;
+	private String path;
 	private Cookie cookie;
 	private Map<String, String> queryParameter = new HashMap<>();
+	private Map<String, String> headers = new HashMap<>();
 
 	public HttpRequest(InputStream in) throws IOException {
 		BufferedReader br = new BufferedReader(new InputStreamReader(in));
@@ -29,38 +24,50 @@ public class HttpRequest {
 		if (line == null) {
 			return;
 		}
-		parseHttpMethod(line);
-		parseHttpUrl(line);
-		parseQueryString(line);
-		while (!line.isEmpty()) {
 
+		System.out.println("startLine : " + line);
+		parseHttpMethod(line);
+		parsePath(line);
+		parseQueryString(line);
+		parseHeader(br);
+		if (httpMethod == HttpMethod.POST) {
+			parseBody(br);
 		}
 	}
 
+	private void parseBody(BufferedReader br) throws IOException {
+		String body = br.readLine();
+		System.out.println(body);
+		parseQuery(body);
+	}
+
 	public HttpRequest(String httpRequest) {
-		this.httpMethod = parseHttpMethod(httpRequest);
-		this.simpleUrl = parseHttpUrl(httpRequest);
 		parseQueryString(httpRequest);
+
 	}
 
 	public HttpMethod getHttpMethod() {
 		return httpMethod;
 	}
 
-	public String getSimpleUrl() {
-		return simpleUrl;
+	public String getPath() {
+		return path;
 	}
 
-	public String getQueryString() {
-		return queryString;
+	public String getHeader(String key) {
+		return headers.get(key);
+	}
+
+	public String getParameter(String key) {
+		return queryParameter.get(key);
 	}
 
 	public boolean isHtml() {
-		return simpleUrl.contains(".html");
+		return path.contains(".html");
 	}
 
 	public boolean isCss() {
-		return simpleUrl.contains(".css");
+		return path.contains(".css");
 	}
 
 	public void setCookie(Cookie cookie) {
@@ -77,34 +84,54 @@ public class HttpRequest {
 		if (url.contains("?")) {
 			int startIndex = url.indexOf('?') + 1;
 			String queryString = url.substring(startIndex);
-			String[] tokens = queryString.split("&");
-			Arrays.stream(tokens)
-				.forEach(token -> {
-					String[] keyValue = token.split("=");
-					queryParameter.put(keyValue[0], keyValue[1]);
-				});
+			parseQuery(queryString);
 		}
 	}
 
-	private String parseHttpUrl(String httpRequest) {
+	private void parsePath(String httpRequest) {
 		String url = httpRequest.split(" ")[1];
 
 		if (url.equals("/")) {
-			return "/index.html";
+			path = "/index.html";
+			return;
 		}
 
 		if (url.contains("?")) {
 			int queryStartIndex = url.indexOf('?');
-
-			return url.substring(0, queryStartIndex);
+			path = url.substring(0, queryStartIndex);
+			return;
 		}
 
-		return url;
+		path = url;
 	}
 
-	private HttpMethod parseHttpMethod(String httpRequest) {
+	private void parseQuery(String query) {
+		String[] tokens = query.split("&");
+
+		Arrays.stream(tokens)
+				.forEach(token -> {
+					String[] keyValue = token.split("=");
+					queryParameter.put(keyValue[0], keyValue[1]);
+				});
+	}
+
+	private void parseHttpMethod(String httpRequest) {
 		String inputHttpMethod = httpRequest.split(" ")[0];
 
-		return HttpMethod.findByValue(inputHttpMethod);
+		httpMethod = HttpMethod.findByValue(inputHttpMethod);
+	}
+
+	private void parseHeader(BufferedReader br) throws IOException {
+		String line;
+
+		while ((line = br.readLine()) != null) {
+
+			if (line.isEmpty()) {
+				return;
+			}
+
+			String[] headerKeyValue = line.split(": ");
+			headers.put(headerKeyValue[0], headerKeyValue[1]);
+		}
 	}
 }

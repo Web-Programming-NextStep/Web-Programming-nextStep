@@ -52,7 +52,7 @@ public class RequestHandler extends Thread {
 			int contentLength = 0;
 			HttpRequest httpRequest = new HttpRequest(line);
 
-			String url = httpRequest.getSimpleUrl();
+			String url = httpRequest.getPath();
 
 			while (!line.equals("")) {
 				line = br.readLine();

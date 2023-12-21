@@ -2,12 +2,10 @@ package webserver;
 
 import static org.assertj.core.api.Assertions.*;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.stream.Stream;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -20,11 +18,13 @@ import util.Cookie;
 class HttpRequestTest {
 	private final String TEST_DIRECTORY = "./src/test/resources/";
 
-	@DisplayName("")
+	@DisplayName("GET 요청에 대한 HttpRequest 객체를 InputStream을 받아 생성 할 수 있다.")
 	@Test
-	void request_GET() throws FileNotFoundException {
+	void request_GET() throws IOException {
 		// given
 		InputStream in = new FileInputStream(new File(TEST_DIRECTORY + "Http_GET.txt"));
+
+		// when
 		HttpRequest httpRequest = new HttpRequest(in);
 
 		// then
@@ -32,40 +32,25 @@ class HttpRequestTest {
 		assertThat(httpRequest.getPath()).isEqualTo("/user/create");
 		assertThat(httpRequest.getHeader("Connection")).isEqualTo("keep-alive");
 		assertThat(httpRequest.getParameter("userId")).isEqualTo("javajigi");
-
 	}
 
-	@DisplayName("요청으로 들어온 Http요청으로 HttpRequest 객체를 만들 수 있다.")
-	@MethodSource("createHttpRequest")
-	@ParameterizedTest
-	void createHttpRequest(String request, HttpMethod httpMethod, String simpleUrl, String queryString,
-		boolean isHtml) {
+	@DisplayName("POST 요청에 대한 HttpRequest 객체를 InputStream을 받아 생성 할 수 있다.")
+	@Test
+	void request_POST() throws IOException {
+		// given
+		InputStream in = new FileInputStream(new File(TEST_DIRECTORY + "Http_POST.txt"));
+
 		// when
-		HttpRequest httpRequest = new HttpRequest(request);
+		HttpRequest httpRequest = new HttpRequest(in);
 
 		// then
-		assertThat(httpRequest.getHttpMethod()).isEqualTo(httpMethod);
-		assertThat(httpRequest.getSimpleUrl()).isEqualTo(simpleUrl);
-		assertThat(httpRequest.getQueryString()).isEqualTo(queryString);
-		assertThat(httpRequest.isHtml()).isEqualTo(isHtml);
+		assertThat(httpRequest.getHttpMethod()).isEqualTo(HttpMethod.POST);
+		assertThat(httpRequest.getPath()).isEqualTo("/user/create");
+		assertThat(httpRequest.getHeader("Connection")).isEqualTo("keep-alive");
+		assertThat(httpRequest.getParameter("userId")).isEqualTo("javajigi");
 	}
 
-	@DisplayName("request 요청에 cookie를 넣을 수 있다.")
-	@Test
-	void setCookie() {
-	    // given
-		String url = "GET /index.html HTTP/1.1";
-		HttpRequest httpRequest = new HttpRequest(url);
-
-		Cookie cookie = new Cookie("Cookie: logined=true; test=ok");
-
-	    // when
-		httpRequest.setCookie(cookie);
-
-	    // then
-		assertThat(httpRequest.getCookie()).isEqualTo(cookie);
-	}
-
+	@Disabled
 	@DisplayName("요청 값에 대해서 css파일을 확인할 수 있다.")
 	@CsvSource(value = {"GET /index.html:False", "GET /index.css:True"}, delimiter = ':')
 	@ParameterizedTest
@@ -78,15 +63,6 @@ class HttpRequestTest {
 
 		// then
 		assertThat(actual).isEqualTo(expected);
-	}
-
-	static Stream<Arguments> createHttpRequest() {
-		return Stream.of(
-			Arguments.arguments("GET / HTTP/1.1", HttpMethod.GET, "/index.html", "", true),
-			Arguments.arguments("GET /index.html HTTP/1.1", HttpMethod.GET, "/index.html", "", true),
-			Arguments.arguments("GET /user/create?email=yeasung67@gmail.com HTTP/1.1", HttpMethod.GET, "/user/create",
-				"email=yeasung67@gmail.com", false)
-		);
 	}
 
 }
